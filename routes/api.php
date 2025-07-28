@@ -20,3 +20,28 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanc
 Route::middleware(['auth:sanctum','can:admin'])->group(function () {
     Route::apiResource('waste-lists', WasteListController::class);
 });
+
+Route::middleware('auth:sanctum')->group(function () {
+    // done
+    Route::post('email-verification/send-email', [AuthController::class, 'resend']);
+    // done
+    Route::get('email-verification/status', [AuthController::class, 'status']);
+});
+
+Route::get('email/verify/{id}/{hash}', [AuthController::class, 'verify'])
+     ->name('verification.verify')
+     ->middleware('signed');
+
+// ===== Password Reset =====
+// Minta kirim link reset password
+Route::post('password-reset/send-email', [AuthController::class, 'sendResetLinkEmail']);
+// Proses reset password dengan token
+Route::post('password-reset', [AuthController::class, 'reset']);
+
+// Named route 'password.reset' agar Password::sendResetLink() berhasil membuat URL
+Route::get('password/reset/{token}', function (Request $request, $token) {
+    return response()->json([
+        'token'   => $token,
+        'email'   => $request->query('email'),
+    ]);
+})->name('password.reset');
